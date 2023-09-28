@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>技师管理</title>
+    <link rel="stylesheet" href="../static/layui/css/layui.css">
+    <script src="../static/layui/layui.js"></script>
+    <script src="../static/js/common.js"></script>
+</head>
+<body>
+<form class="layui-form layui-row layui-col-space16" id="searchForm">
+    <div class="layui-col-md3">
+        <div class="layui-input-wrap">
+            <div class="layui-input-prefix">
+                <i class="layui-icon layui-icon-username"></i>
+            </div>
+            <input type="text" name="A" id="search-techname" placeholder="名字模糊查询" class="layui-input" lay-affix="clear">
+        </div>
+    </div>
+    <div class="layui-col-md3">
+        <div class="layui-input-wrap">
+            <div class="layui-input-prefix">
+                <i class="layui-icon layui-icon-username"></i>
+            </div>
+            <select id="search-businame">
+                <option value="">请选择所属公司</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-col-md3">
+        <div class="layui-input-wrap">
+            <div class="layui-input-prefix">
+                <i class="layui-icon layui-icon-face-surprised"></i>
+            </div>
+            <select id="search-protype">
+                <option value="">请选择服务类别</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-col-md3">
+        <div class="layui-input-wrap">
+            <div class="layui-input-prefix">
+                <i class="layui-icon layui-icon-cellphone-fine"></i>
+            </div>
+            <input type="text" name="C" id="search-proname" placeholder="服务名称查询" class="layui-input">
+        </div>
+    </div>
+    <div class="layui-btn-container layui-col-md3 layui-col-md-offset9">
+        <button type="button" class="layui-btn" id="btn-add"><i class="layui-icon layui-icon-addition"></i>新增</button>
+        <button type="button" class="layui-btn" id="btn-search"><i class="layui-icon layui-icon-search"></i>搜索</button>
+        <button type="button" class="layui-btn layui-btn-primary" id="btn-reset"><i
+                class="layui-icon layui-icon-fonts-clear"></i>重置
+        </button>
+    </div>
+</form>
+<table class="layui-hide" id="ID-table-demo-search"></table>
+<div id="pager"></div>
+
+<div id="addTechnician" style="display: none;height: 400px;padding: 10px;">
+    <form class="layui-form layui-row layui-col-space16" id="saveForm">
+        <div class="layui-col-md6">
+            <div class="layui-input-wrap">
+                <div class="layui-input-prefix">
+                    <i class="layui-icon layui-icon-username"></i>
+                </div>
+                <input type="text" name="A" id="save-techname" placeholder="名称" class="layui-input"
+                       lay-affix="clear">
+            </div>
+        </div>
+        <div class="layui-col-md6">
+            <div class="layui-input-wrap">
+                <div class="layui-input-prefix">
+                    <i class="layui-icon layui-icon-username"></i>
+                </div>
+                <select id="save-busid">
+                    <option value="">请选择所属公司</option>
+                </select>
+            </div>
+        </div>
+        <div class="layui-col-md12">
+            <div class="layui-input-wrap">
+                <div class="layui-input-prefix">
+                    <i class="layui-icon layui-icon-rmb"></i>
+                </div>
+                <textarea type="text" name="C" id="save-techexplain" placeholder="技师介绍" class="layui-textarea"
+                          lay-affix="clear"></textarea>
+            </div>
+        </div>
+        <!--
+        图片上传
+        -->
+        <button type="button" class="layui-btn" id="ID-upload-demo-btn">
+            <i class="layui-icon layui-icon-upload"></i> 技师图片
+        </button>
+        <div style="width: 132px;">
+            <div class="layui-upload-list">
+                <img class="layui-upload-img" id="ID-upload-demo-img" style="width: 100%; height: 92px;">
+                <div id="ID-upload-demo-text"></div>
+            </div>
+            <div class="layui-progress layui-progress-big" lay-showPercent="yes" lay-filter="filter-demo">
+                <div class="layui-progress-bar" lay-percent=""></div>
+            </div>
+        </div>
+
+
+        <div class="layui-row layui-col-space16">
+            <div class="layui-col-md12 layui-form" id="project-checkbox-div"></div>
+        </div>
+        <!--
+        提交和重置按钮
+        -->
+        <div class="layui-form-item" style="text-align: right;padding-right: 80px;padding-top: 30px;">
+            <div class="layui-input-block">
+                <button type="button" id="btn-submit-saveForm" class="layui-btn" lay-submit lay-filter="demo1">立即提交
+                </button>
+                <button type="button" id="btn-reset-saveForm" class="layui-btn layui-btn-primary">重置</button>
+            </div>
+        </div>
+    </form>
+</div>
+<!-- 模态框：双击行弹出展示产品详情 -->
+<div id="projectDetails" style="display: none;">
+    <div style="padding:10px;height: 430px;">
+        <img id="productImage" style="width: 100%;"/>
+        <br/>
+        <div style="margin-bottom: 20px;">
+            <br/>
+            <p><b>擅长服务：</b></p>
+            <p id="project-prostep"></p>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    var param = {};
+    var uploadInst;
+    var saveFormDialogIndex,upload,element,table,form,laydate,$,laypage;
+    var pageData = [];  //当前页的数据
+    var imgIsChanged = false;   //产品图片是否被改变
+    var page = 1, limit = 10;   //默认当前页码是第一页 每页条数是10条
+    layui.use(['jquery', 'layer'], function ( ) {
+         upload = layui.upload;
+         table = layui.table;
+         form = layui.form;
+         laydate = layui.laydate;
+        element = layui.element;
+        $ = layui.$;
+        laypage = layui.laypage;
+        //页面加载完毕，发请求查询公司列表，做下拉框
+        $.getJSON(ctx + '/business/getBusiness', function (res) {
+            if (res.data && res.data.length) {
+                res.data.forEach(business => {
+                    $("#save-busid").append('<option value="' + business.id + '">' + business.busname + '</option>')
+                    $("#search-businame").append('<option value="' + business.id + '">' + business.busname + '</option>')
+                })
+                layui.form.render('select');
+            }
+        });
+        //
+        $.getJSON(ctx + '/projecttype/getProjectType', function (res) {
+            console.log(res)
+            if (res.data && res.data.length) {
+                res.data.forEach(projecttype => {
+                    $("#search-protype").append('<option value="' + projecttype.id + '">' + projecttype.name + '</option>')
+                })
+                layui.form.render('select');
+            }
+        });
+        uploadInst = upload.render({
+            elem: '#ID-upload-demo-btn',
+            url: ctx + '/upload', // 此处用的是第三方的 http 请求演示，实际使用时改成您自己的上传接口即可。
+            data: {
+                type: 2     //type 1表示产品图片  2表示技师图片
+            },
+            before: function (obj) {
+                // 预读本地文件示例，不支持ie8
+                obj.preview(function (index, file, result) {
+                    $('#ID-upload-demo-img').attr('src', result); // 图片链接（base64）
+                });
+                element.progress('filter-demo', '0%'); // 进度条复位
+                layer.msg('上传中', {icon: 16, time: 0});
+            },
+            done: function (res) {
+                console.log(res)
+                // 若上传失败
+                if (!res.success) {
+                    return layer.msg('上传失败');
+                }
+                // 上传成功的一些操作
+                $('#ID-upload-demo-text').html(''); // 置空上传失败的状态
+                param.imageurl = res.data;
+            },
+            error: function () {
+                // 演示失败状态，并实现重传
+                var demoText = $('#ID-upload-demo-text');
+                demoText.html('<span style="color: #FF5722;">上传失败</span> <a class="layui-btn layui-btn-xs demo-reload">重试</a>');
+                demoText.find('.demo-reload').on('click', function () {
+                    uploadInst.upload();
+                });
+            },
+            // 进度条
+            progress: function (n, elem, e) {
+                element.progress('filter-demo', n + '%'); // 可配合 layui 进度条元素使用
+                if (n == 100) {
+                    layer.msg('上传完毕', {icon: 1});
+                }
+            },
+            choose: function (obj) {
+                // 将每次选择的文件追加到文件数组
+                //var files = obj.pushFile();
+                imgIsChanged = true;
+                param.imgIsChanged = imgIsChanged
+            }
+        });
+        function reset(){
+            $("#saveForm")[0].reset();
+            // 重载upload组件
+            $('#ID-upload-demo-img').attr('src', '');
+            element.progress('filter-demo', '0%');
+            $("#ID-upload-demo-text").html('');
+        }
+        //新增按钮的点击事件
+        $("#btn-add").click(function () {
+            reset();
+            $.getJSON(ctx + '/project/listByIsOwn', function(data){
+                if(data && data.length){
+                    $("#project-checkbox-div").empty();
+                    data.forEach((pro,index) => {
+                        if(index % 4 == 3)
+                            $("#project-checkbox-div").append('<input type="checkbox" value="'+pro.id+'" class="project-checkbox" title="'+pro.proname+'" /><br/>')
+                        else
+                            $("#project-checkbox-div").append('<input type="checkbox" value="'+pro.id+'" class="project-checkbox" title="'+pro.proname+'" />')
+                    })
+                    layui.form.render('checkbox');
+                }
+            })
+            saveFormDialogIndex = layer.open({
+                offset: '0px',              //坐标始终垂直水平居中
+                area: ['900px', 'auto'],    //宽度固定，高度自动
+                title: '新增/修改产品信息',
+                skin: 'layui-layer-molv',   //墨绿主题
+                type: 1,
+                //shadeClose: true, // 点击遮罩关闭层
+                //shade: false,       // 不显示遮罩
+                content: $('#addTechnician'), // 捕获的元素
+                success: function (layero, index, that) {
+                    // 弹层的最外层元素的 jQuery 对象
+                    console.log(layero);
+                    // 弹层的索引值
+                    console.log(index);
+                    // 弹层内部原型链中的 this --- 2.8+
+                    console.log(that);
+                    param.id = null; //id为空表示新增  不为空表示修改
+                }
+            });
+        });
+        table.render({
+            elem: '#ID-table-demo-search',
+            url: ctx + '/technician/getTechniciansPage',
+            method: 'post',
+            //请求参数传递方式，以json格式传输，后端才能使用@RequestBody来接收
+            contentType: 'application/json;charset=utf-8',
+            // request: {
+            //     pageName: 'pageNo',     // 当前页码的参数名称，默认：page
+            //     limitName: 'pageSize'   // 每页数据条数的参数名，默认：limit
+            // },
+            page: false,
+            cols: [
+                [
+                    {checkbox: true, fixed: true},
+                    {field: 'id', title: 'ID', width: 80, sort: true, fixed: true},
+                    {field: 'techname', title: '技师姓名', width: 180},
+                    {field: 'techexplain', title: '技师描述', width: 400},
+                    {
+                        field: 'businessName', title: '公司', width: 200, templet: function (row) {
+                            if (row.business) return row.business.busname;
+                            return '-';
+                        }
+                    },
+                    {field: 'aaabbbccc', title: '操作', width: 120, templet: function(row){
+                            pageData.push(row);     //给全局变量数组添加数据
+                            return '<div><button type="button" onclick="toEdit('+row.LAY_NUM+')" class="layui-btn layui-btn-xs layui-btn-normal">修改</button></div>';
+                        }}
+                ]
+            ],
+            //layui发送请求到后端访问接口得到数据后，在展示表格之前先执行这个方法
+            parseData: function(res){ // res 即为原始返回的数据
+                console.log(res)
+                if(res.success) {
+                    laypage.render({
+                        elem: 'pager',
+                        curr: page,
+                        limit: limit,
+                        count: res.data.total,      // 数据总数，从后端得到
+                        limits:[10,20,50],          //可改变每页条数
+                        layout: ['prev','page','next','count','limit','refresh','skip'],
+                        jump: function(obj, first){
+                            console.log(obj.curr);  // 得到当前页，以便向服务端请求对应页的数据。
+                            console.log(obj.limit); // 得到每页显示的条数
+                            //捕获翻页事件，每次翻页都把全局变量的数组清空，也就是数组中永远只保存当前页的数据。
+                            pageData = [];
+                            page = obj.curr;
+                            limit = obj.limit;
+                            // 首次不执行
+                            if(!first){
+                                //重新加载数据：除了page和limit之外还携带了其他参数
+                                table.reloadData('ID-table-demo-search',{
+                                    where:{
+                                        techname: $("#search-techname").val(),
+                                        busid: $("#search-businame").val(),
+                                        protypeid: $("#search-protype").val(),
+                                        proname: $("#search-proname").val(),
+                                        page: page,
+                                        limit: limit
+                                    }
+                                });
+                            }
+                        }
+                    });
+                    return {
+                        "code": 0,                  // 解析接口状态  必须是0，非0的话就展示不出来数据
+                        "msg": res.message,         // 解析提示文本
+                        "count": res.data.total,    // 解析总条数
+                        "data": res.data.list       // 解析数据列表
+                    };
+                }else if(res.message === "noLogin"){
+                    layer.alert("请先登录！",{icon:5}, function(){
+                        top.location.href = ctx + '/login';    //条到登录页面
+                    });
+                }else{
+                    layer.alert(res.message,{icon:5});
+                }
+            }
+        });
+        // 行双击事件：双击行弹出模态框展示产品详情   table-data是table标签的id属性
+        table.on('rowDouble(ID-table-demo-search)', function (obj) {
+            var data = obj.data; // 得到当前行数据
+            //var index = obj.index; // 得到当前行索引
+            //var tr = obj.tr; // 得到当前行 <tr> 元素的 jQuery 对象
+            //var options = obj.config; // 获取当前表格基础属性配置项
+            console.log(obj); // 查看对象所有成员
+            // obj.del() // 删除当前行
+            // obj.update(fields, related);  // 修改行数据
+            // obj.setRowChecked(opts); // 设置行选中状态
+            // 事件 打开模态框
+            layer.open({
+                offset: '0px',             // 坐标始终垂直水平居中
+                area: ['520px', 'auto'],    //宽度固定，高度自动
+                title: '产品信息',
+                skin: 'layui-layer-molv',   //墨绿主题
+                type: 1,
+                shadeClose: true, // 点击遮罩关闭层
+                //shade: false,               // 不显示遮罩
+                content: $('#projectDetails'), // 捕获的元素  引入外部定义的html标签
+                success: function (layero, index, that) {
+                    // 弹层的最外层元素的 jQuery 对象
+                    console.log(layero);
+                    // 弹层的索引值
+                    console.log(index);
+                    // 弹层内部原型链中的 this --- 2.8+
+                    console.log(that);
+                    //填充要展示的内容
+                    $("#productImage").attr("src", ctxImg + data.imageurl);
+                    $("#project-prostep").empty();
+                    if (data.projects) {
+                        data.projects.forEach(pro => $("#project-prostep").append('<span class="layui-badge">' + pro.proname + '</span>\n\n'));
+                    }
+                }
+            });
+        });
+        $("#btn-search").click(function () {
+            //重新加载数据：除了page和limit之外还携带了其他参数
+            table.reload('ID-table-demo-search', {
+                where: {
+                    techname: $("#search-techname").val(),
+                    busid: $("#search-businame").val(),
+                    protypeid: $("#search-protype").val(),
+                    proname: $("#search-proname").val(),
+                    limit: limit
+                }
+            });
+        })
+        //重置按钮绑定点击事件：重置搜索表单，还要将下面表格数据还原
+        $("#btn-reset").click(function (){
+            $("#searchForm")[0].reset();
+            //重新加载数据：除了page和limit之外么有任何其他参数
+            table.reloadData('ID-table-demo-search', {
+              where: {
+                   page :page,
+                  limit :limit
+               }
+            })
+        });
+        //新增或修改产品的模态框中的重置按钮
+        $("#btn-reset-saveForm").click(function(){
+            $("#saveForm")[0].reset();
+            // 重载upload组件
+            $('#ID-upload-demo-img').attr('src', '');
+            element.progress('filter-demo', '0%');
+            $("#ID-upload-demo-text").html('');
+        })
+        $("#btn-submit-saveForm").click(function (){
+            param.techname = $("#save-techname").val();
+            param.busid = $("#save-busid").val();
+            param.techexplain = $("#save-techexplain").val();
+            //先找到用户勾选的那些多选框
+            var inputs = $("#project-checkbox-div").find("input[type='checkbox']:checked");
+            param.proids = [];
+            for (let i = 0; i < inputs.length; i++) {
+                param.proids.push(inputs[i].value);
+            }
+            console.log(param)
+            //发送请求
+            $.ajax({
+                type: 'post',
+                url: ctx + '/technician/save',
+                data: JSON.stringify(param),
+                headers:{
+                    "content-type": "application/json"	//发送请求传递参数的格式 415错误：请求参数的格式不对
+                },
+                dataType: 'json',		//响应数据的格式
+                success: function(res) {
+                    console.log(res)
+                    if(res.success) {
+                        //重置表单：触发重置按钮的点击事件
+                        $("#btn-reset-saveForm").click();
+                        //关闭模态框
+                        layer.close(saveFormDialogIndex);
+                        //重新加载数据：除了page和limit之外么有任何其他参数
+                        table.reloadData('table-data',{
+                            where:{
+                                page: page,
+                                limit: limit
+                            }
+                        });
+                    } else {
+                        layer.alert(res.message,{icon:5});
+                    }
+                }
+            })
+        })
+        // 日期
+        laydate.render({
+            elem: '#demo-table-search-date'
+        });
+        // 搜索提交
+        form.on('submit(demo-table-search)', function (data) {
+            var field = data.field; // 获得表单字段
+            console.debug(field);
+            // 执行搜索重载
+            table.reload('ID-table-demo-search', {
+                page: {
+                    curr: 1 // 重新从第 1 页开始
+                },
+                where: field // 搜索的字段
+            });
+            layer.msg('搜索成功<br>此处为静态模拟数据，实际使用时换成真实接口即可');
+            return false; // 阻止默认 form 跳转
+        });
+
+    });
+    function toEdit(index){
+        param = pageData[index-1];  //id为空表示新增  不为空表示修改
+        param.oldImageurl = param.imageurl; //设置一下旧图片地址  如果用户在修改时重新上传了新图片，则要删除原先的旧图片
+        console.log(param)
+
+        //页面挂载完毕时，发送请求查询所有产品
+        $.getJSON(ctx + '/project/listByIsOwn?tecid=' + param.id, function(data){
+            if(data && data.length){
+                $("#project-checkbox-div").empty();
+                data.forEach((pro,index) => {
+                    if(index % 4 == 3)
+                        $("#project-checkbox-div").append('<input type="checkbox" value="'+pro.id+'" class="project-checkbox" title="'+pro.proname+'"'+(pro.isOwn==1?'checked':'')+' /><br/>')
+                    else
+                        $("#project-checkbox-div").append('<input type="checkbox" value="'+pro.id+'" class="project-checkbox" title="'+pro.proname+'"'+(pro.isOwn==1?'checked':'')+' />')
+                })
+                layui.form.render('checkbox');
+            }
+        })
+        //回显数据
+        saveFormDialogIndex = layer.open({
+            offset: '0px',              //坐标始终垂直水平居中
+            area: ['900px', 'auto'],    //宽度固定，高度自动
+            title: '新增/修改产品信息',
+            skin: 'layui-layer-molv',   //墨绿主题
+            type: 1,
+            //shadeClose: true, // 点击遮罩关闭层
+            //shade: false,               // 不显示遮罩
+            content: $('#addTechnician'), // 捕获的元素
+            success: function(layero, index, that){
+                $("#save-techname").val(param.techname);
+                $("#save-techexplain").val(param.techexplain);
+                $("#save-busid").val(param.busid);
+                layui.form.render('select');
+
+                //回显图片
+                $('#ID-upload-demo-img').attr('src', ctxImg + param.imageurl);
+                element.progress('filter-demo', '100%');
+                param.imgIsChanged = imgIsChanged;
+            }
+        });
+    }
+</script>
+</body>
+</html>

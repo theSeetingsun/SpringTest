@@ -1,0 +1,22 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:3306/cosmetology?serverTimezone=Asia/Shanghai
+    username: root
+    password: 123456
+
+#mapper的xml文件路径
+mybatis-plus:
+  mapper-locations: classpath:App.dao/*Mapper.xml
+
+#mybatis的日志输出
+logging:
+  level:
+    App: trace
+
+#文件上传
+file:
+ upload:
+    img:
+      project: /static/img/project/
+      technician: /static/img/technician/

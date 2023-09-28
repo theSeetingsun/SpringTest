@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Demo</title>
+    <link rel="stylesheet" href="../static/layui/css/layui.css">
+    <script src="../static/layui/layui.js"></script>
+    <script src="../static/js/common.js"></script>
+</head>
+<body>
+<form class="layui-form layui-row layui-col-space16" id="searchForm">
+    <div class="layui-col-md3">
+        <div class="layui-input-wrap">
+            <div class="layui-input-prefix">
+                <i class="layui-icon layui-icon-username"></i>
+            </div>
+            <input type="text" name="A" id="search-proname" placeholder="产品名称模糊查询" class="layui-input"
+                   lay-affix="clear">
+        </div>
+    </div>
+    <div class="layui-col-md3">
+        <div class="layui-input-wrap">
+            <div class="layui-input-prefix">
+                <i class="layui-icon layui-icon-username"></i>
+            </div>
+            <select id="search-busid">
+                <option value="">请选择所属公司</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-col-md3">
+        <div class="layui-input-wrap">
+            <div class="layui-input-prefix">
+                <i class="layui-icon layui-icon-cellphone-fine"></i>
+            </div>
+            <select id="search-protypeid">
+                <option value="">请选择服务类别</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-col-md3">
+        <div class="layui-input-wrap">
+            <div class="layui-input-prefix">
+                <i class="layui-icon layui-icon-rmb"></i>
+            </div>
+            <input type="text" name="C" id="search-propriceMin" placeholder="价格区间查询" class="layui-input">
+        </div>
+    </div>
+
+    <div class="layui-col-md3">
+        <div class="layui-input-wrap">
+            <div class="layui-input-prefix">
+                <i class="layui-icon layui-icon-rmb"></i>
+            </div>
+            <input type="text" name="C" id="search-propriceMax" placeholder="价格区间查询" class="layui-input">
+        </div>
+    </div>
+    <div class="layui-col-md3">
+        <div class="layui-input-wrap">
+            <div class="layui-input-prefix">
+                <i class="layui-icon layui-icon-cellphone-fine"></i>
+            </div>
+            <select id="search-prostatus">
+                <option value="">请选择状态</option>
+                <option value="1">可用</option>
+                <option value="0">禁用</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-btn-container layui-col-md3 layui-col-md-offset9">
+        <button type="button" class="layui-btn" id="btn-add"><i class="layui-icon layui-icon-addition"></i>新增</button>
+        <button type="button" class="layui-btn" id="btn-search"><i class="layui-icon layui-icon-search"></i>搜索</button>
+        <button type="button" class="layui-btn layui-btn-primary" id="btn-reset"><i
+                class="layui-icon layui-icon-fonts-clear"></i>重置
+        </button>
+    </div>
+</form>
+<table class="layui-hide" id="ID-table-demo-search"></table>
+<!-- 模态框：双击行弹出展示产品详情 -->
+<div id="projectDetails" style="display: none;">
+    <div style="padding:10px;height: 420px;">
+        <img id="productImage" style="width: 100%;"/>
+        <br/>
+        <div>
+            <br/>
+            <p><b>产品步骤：</b></p>
+            <p id="project-prostep"></p>
+        </div>
+    </div>
+</div>
+
+
+<!--自定义标签用来放自定义的分页工具栏-->
+<div id="pager"></div>
+<!--
+产品添加模态框
+-->
+<div id="addProject" style="display: none;height: 400px;padding: 10px;">
+    <form class="layui-form layui-row layui-col-space16" id="saveForm">
+        <div class="layui-col-md3">
+            <div class="layui-input-wrap">
+                <div class="layui-input-prefix">
+                    <i class="layui-icon layui-icon-username"></i>
+                </div>
+                <input type="text" name="A" id="save-proname" placeholder="产品名称" class="layui-input"
+                       lay-affix="clear">
+            </div>
+        </div>
+        <div class="layui-col-md3">
+            <div class="layui-input-wrap">
+                <div class="layui-input-prefix">
+                    <i class="layui-icon layui-icon-username"></i>
+                </div>
+                <select id="save-busid">
+                    <option value="">请选择所属公司</option>
+                </select>
+            </div>
+        </div>
+        <div class="layui-col-md3">
+            <div class="layui-input-wrap">
+                <div class="layui-input-prefix">
+                    <i class="layui-icon layui-icon-cellphone-fine"></i>
+                </div>
+                <select id="save-protypeid">
+                    <option value="">请选择服务类别</option>
+                </select>
+            </div>
+        </div>
+        <div class="layui-col-md3">
+            <div class="layui-input-wrap">
+                <div class="layui-input-prefix">
+                    <i class="layui-icon layui-icon-rmb"></i>
+                </div>
+                <input type="text" name="C" id="save-proprice" placeholder="价格" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-col-md6">
+            <div class="layui-input-wrap">
+                <div class="layui-input-prefix">
+                    <i class="layui-icon layui-icon-rmb"></i>
+                </div>
+                <textarea type="text" name="C" id="save-proexplain" placeholder="产品介绍" class="layui-textarea"
+                          lay-affix="clear"></textarea>
+            </div>
+        </div>
+        <div class="layui-col-md6">
+            <div class="layui-input-wrap">
+                <div class="layui-input-prefix">
+                    <i class="layui-icon layui-icon-rmb"></i>
+                </div>
+                <textarea type="text" name="C" id="save-prostep" placeholder="产品步骤" class="layui-textarea"
+                          lay-affix="clear"></textarea>
+            </div>
+        </div>
+
+        <!--
+        图片上传
+        -->
+        <button type="button" class="layui-btn" id="ID-upload-demo-btn">
+            <i class="layui-icon layui-icon-upload"></i> 上传图片
+        </button>
+        <div style="width: 132px;">
+            <div class="layui-upload-list">
+                <img class="layui-upload-img" id="ID-upload-demo-img" style="width: 100%; height: 92px;">
+                <div id="ID-upload-demo-text"></div>
+            </div>
+            <div class="layui-progress layui-progress-big" lay-showPercent="yes" lay-filter="filter-demo">
+                <div class="layui-progress-bar" lay-percent=""></div>
+            </div>
+        </div>
+        <!--
+        提交和重置按钮
+        -->
+        <div class="layui-form-item" style="text-align: right;padding-right: 80px;padding-top: 30px;">
+            <div class="layui-input-block">
+                <button type="button" id="btn-submit-saveForm" class="layui-btn" lay-submit lay-filter="demo1">立即提交
+                </button>
+                <button type="button" id="btn-reset-saveForm" class="layui-btn layui-btn-primary">重置</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+
+<script>
+    var page = 1, limit = 10;   //默认当前页码是第一页 每页条数是10条
+    var param = {};
+    var pageData = [];
+    var uploadInst;
+    var saveFormDialogIndex, element,laypage;
+    var $;
+    var imgIsChanged = false;
+    layui.use(['jquery', 'layer'], function () {
+        var upload = layui.upload;
+        var table = layui.table;
+        var form = layui.form;
+        element = layui.element;
+        var laydate = layui.laydate;
+         $ = layui.$;
+        laypage = layui.laypage;
+        //页面加载完毕，发请求查询公司列表，做下拉框
+        $.getJSON(ctx + '/business/getBusiness', function (data) {
+            if (data.data && data.data.length) {
+                data.data.forEach(business => {
+                    $("#search-busid").append('<option value="' + business.id + '">' + business.busname + '</option>')
+                    $("#save-busid").append('<option value="' + business.id + '">' + business.busname + '</option>')
+                })
+                layui.form.render('select');
+            }
+        });
+        //页面加载完毕，发请求查询产品类型，做下拉框
+        $.getJSON(ctx + '/projecttype/getProjectType', function (res) {
+            console.log(res)
+            if (res.data && res.data.length) {
+                res.data.forEach(projecttype => {
+                    $("#save-protypeid").append('<option value="' + projecttype.id + '">' + projecttype.name + '</option>')
+                    $("#search-protypeid").append('<option value="' + projecttype.id + '">' + projecttype.name + '</option>')
+                })
+                layui.form.render('select');
+            }
+        });
+        // 创建表格实例
+        table.render({
+            elem: '#ID-table-demo-search',
+            url: ctx + '/project/getProinfosPage',
+            method: 'post',
+            //请求参数传递方式，以json格式传输，后端才能使用@RequestBody来接收
+            contentType: 'application/json;charset=utf-8',
+            // request: {
+            //     pageName: 'pageNo',     // 当前页码的参数名称，默认：page
+            //     limitName: 'pageSize'   // 每页数据条数的参数名，默认：limit
+            // },
+            page: false,
+            cols: [
+                [
+                    {checkbox: true, fixed: true},
+                    {field: 'id', title: 'ID', width: 80, sort: true, fixed: true},
+                    {field: 'proname', title: '产品名称', width: 180},
+                    {field: 'proprice', title: '产品价格', width: 80},
+                    {field: 'proexplain', title: '产品描述', width: 300, sort: true},
+                    {
+                        field: 'prostatus', title: '状态', width: 80, templet: function (row) {
+                            if (row.prostatus === 1) {
+                                return '<span style="color: blue">可用</span>';
+                            } else {
+                                return '<span style="color: pink">禁用</span>';
+                            }
+                        }
+                    },
+                    {
+                        field: 'projectTypeName', title: '类别', width: 80, templet: function (row) {
+                            if (row.projectType) return row.projectType.name;
+                            return '-';
+                        }
+                    },
+                    {
+                        field: 'aaabbbccc', title: '操作', width: 120, templet: function (row) {
+                            pageData.push(row);     //给全局变量数组添加数据
+                            return '<div><button type="button" onclick="toEdit(' + row.LAY_NUM + ')" class="layui-btn layui-btn-xs layui-btn-normal">修改</button></div>';
+                        }
+                    }
+                ]
+            ],
+            //layui发送请求到后端访问接口得到数据后，在展示表格之前先执行这个方法
+            parseData: function(res){ // res 即为原始返回的数据
+                console.log(res)
+                if(res.success) {
+                    laypage.render({
+                        elem: 'pager',
+                        curr: page,
+                        limit: limit,
+                        count: res.data.total,      // 数据总数，从后端得到
+                        limits:[10,20,50],          //可改变每页条数
+                        layout: ['prev','page','next','count','limit','refresh','skip'],
+                        jump: function(obj, first){
+                            console.log(obj.curr);  // 得到当前页，以便向服务端请求对应页的数据。
+                            console.log(obj.limit); // 得到每页显示的条数
+                            //捕获翻页事件，每次翻页都把全局变量的数组清空，也就是数组中永远只保存当前页的数据。
+                            pageData = [];
+                            page = obj.curr;
+                            limit = obj.limit;
+                            // 首次不执行
+                            if(!first){
+                                //重新加载数据：除了page和limit之外还携带了其他参数
+                                table.reloadData('ID-table-demo-search',{
+                                    where:{
+                                        proname: $("#search-proname").val(),
+                                        busid: $("#search-busid").val(),
+                                        protypeid: $("#search-protypeid").val(),
+                                        propriceMin: $("#search-propriceMin").val(),
+                                        propriceMax: $("#search-propriceMax").val(),
+                                        prostatus: $("#search-prostatus").val(),
+                                        page: page,
+                                        limit: limit
+                                    }
+                                });
+                            }
+                        }
+                    });
+                    return {
+                        "code": 0,                  // 解析接口状态  必须是0，非0的话就展示不出来数据
+                        "msg": res.message,         // 解析提示文本
+                        "count": res.data.total,    // 解析总条数
+                        "data": res.data.list       // 解析数据列表
+                    };
+                }else if(res.message === "noLogin"){
+                    layer.alert("请先登录！",{icon:5}, function(){
+                        top.location.href = ctx + '/login';    //条到登录页面
+                    });
+                }else{
+                    layer.alert(res.message,{icon:5});
+                }
+            }
+        });
+        // 行双击事件：双击行弹出模态框展示产品详情   table-data是table标签的id属性
+        table.on('rowDouble(ID-table-demo-search)', function (obj) {
+            var data = obj.data; // 得到当前行数据
+            //var index = obj.index; // 得到当前行索引
+            //var tr = obj.tr; // 得到当前行 <tr> 元素的 jQuery 对象
+            //var options = obj.config; // 获取当前表格基础属性配置项
+            console.log(obj); // 查看对象所有成员
+            // obj.del() // 删除当前行
+            // obj.update(fields, related);  // 修改行数据
+            // obj.setRowChecked(opts); // 设置行选中状态
+            // 事件 打开模态框
+            layer.open({
+                offset: '0px',             // 坐标始终垂直水平居中
+                area: ['520px', 'auto'],    //宽度固定，高度自动
+                title: '产品信息',
+                skin: 'layui-layer-molv',   //墨绿主题
+                type: 1,
+                shadeClose: true, // 点击遮罩关闭层
+                //shade: false,               // 不显示遮罩
+                content: $('#projectDetails'), // 捕获的元素  引入外部定义的html标签
+                success: function (layero, index, that) {
+                    // 弹层的最外层元素的 jQuery 对象
+                    console.log(layero);
+                    // 弹层的索引值
+                    console.log(index);
+                    // 弹层内部原型链中的 this --- 2.8+
+                    console.log(that);
+                    //填充要展示的内容
+                    $("#productImage").attr("src", ctxImg + data.image.imageurl);
+                    $("#project-prostep").html(data.prostep);
+                }
+            });
+        });
+        // 渲染图片上传 文件上传框
+        uploadInst = upload.render({
+            elem: '#ID-upload-demo-btn',
+            url: ctx + '/upload', // 此处用的是第三方的 http 请求演示，实际使用时改成您自己的上传接口即可。
+            data: {
+                type: 1     //type 1表示产品图片  2表示技师图片
+            },
+            before: function (obj) {
+                // 预读本地文件示例，不支持ie8
+                obj.preview(function (index, file, result) {
+                    $('#ID-upload-demo-img').attr('src', result); // 图片链接（base64）
+                });
+                element.progress('filter-demo', '0%'); // 进度条复位
+                layer.msg('上传中', {icon: 16, time: 0});
+            },
+            done: function (res) {
+                console.log(res)
+                // 若上传失败
+                if (!res.success) {
+                    return layer.msg('上传失败');
+                }
+                // 上传成功的一些操作
+                $('#ID-upload-demo-text').html(''); // 置空上传失败的状态
+                param.imageurl = res.data;
+            },
+            error: function () {
+                // 演示失败状态，并实现重传
+                var demoText = $('#ID-upload-demo-text');
+                demoText.html('<span style="color: #FF5722;">上传失败</span> <a class="layui-btn layui-btn-xs demo-reload">重试</a>');
+                demoText.find('.demo-reload').on('click', function () {
+                    uploadInst.upload();
+                });
+            },
+            // 进度条
+            progress: function (n, elem, e) {
+                element.progress('filter-demo', n + '%'); // 可配合 layui 进度条元素使用
+                if (n == 100) {
+                    layer.msg('上传完毕', {icon: 1});
+                }
+            },
+            choose: function (obj) {
+                // 将每次选择的文件追加到文件数组
+                //var files = obj.pushFile();
+                imgIsChanged = true;
+                param.imgIsChanged = imgIsChanged
+            }
+        });
+        //搜索按钮
+        $("#btn-search").click(function () {
+            //重新加载数据：除了page和limit之外还携带了其他参数
+            table.reload('ID-table-demo-search', {
+                where: {
+                    proname: $("#search-proname").val(),
+                    busid: $("#search-busid").val(),
+                    protypeid: $("#search-protypeid").val(),
+                    propriceMin: $("#search-propriceMin").val(),
+                    propriceMax: $("#search-propriceMax").val(),
+                    prostatus: $("#search-prostatus").val()
+                }
+            });
+        })
+        //重置按钮绑定点击事件：重置搜索表单，还要将下面表格数据还原
+        $("#btn-reset").click(function () {
+            $("#searchForm")[0].reset();
+            //重新加载数据：除了page和limit之外么有任何其他参数
+            table.reloadData('ID-table-demo-search', {
+                where: {}
+            });
+        })
+        //新增按钮的点击事件
+        $("#btn-add").click(function () {
+            $("#saveForm")[0].reset();
+            // 重载upload组件
+            $('#ID-upload-demo-img').attr('src', '');
+            element.progress('filter-demo', '0%');
+            $("#ID-upload-demo-text").html('');
+            saveFormDialogIndex = layer.open({
+                offset: '0px',              //坐标始终垂直水平居中
+                area: ['900px', 'auto'],    //宽度固定，高度自动
+                title: '新增/修改产品信息',
+                skin: 'layui-layer-molv',   //墨绿主题
+                type: 1,
+                //shadeClose: true, // 点击遮罩关闭层
+                //shade: false,       // 不显示遮罩
+                content: $('#addProject'), // 捕获的元素
+                success: function (layero, index, that) {
+                    // 弹层的最外层元素的 jQuery 对象
+                    console.log(layero);
+                    // 弹层的索引值
+                    console.log(index);
+                    // 弹层内部原型链中的 this --- 2.8+
+                    console.log(that);
+                    param.id = null; //id为空表示新增  不为空表示修改
+                }
+            });
+        });
+        //新增或修改产品的模态框中的重置按钮
+        $("#btn-reset-saveForm").click(function () {
+            $("#saveForm")[0].reset();
+            // 重载upload组件
+            $('#ID-upload-demo-img').attr('src', '');
+            element.progress('filter-demo', '0%');
+            $("#ID-upload-demo-text").html('');
+        })
+        //新增或修改产品的模态框中的提交按钮
+        $("#btn-submit-saveForm").click(function () {
+            param.proname = $("#save-proname").val();
+            param.proexplain = $("#save-proexplain").val();
+            param.proprice = $("#save-proprice").val();
+            param.prostep = $("#save-prostep").val();
+            param.protypeid = $("#save-protypeid").val();
+            param.busid = $("#save-busid").val();
+            console.log(param)
+            //发送请求
+            $.ajax({
+                type: 'post',
+                url: ctx + '/project/save',
+                data: JSON.stringify(param),
+                headers: {
+                    "content-type": "application/json"	//发送请求传递参数的格式 415错误：请求参数的格式不对
+                },
+                dataType: 'json',		//响应数据的格式
+                success: function (res) {
+                    console.log(res)
+                    if (res.success) {
+                        //重置表单：触发重置按钮的点击事件
+                        $("#btn-reset-saveForm").click();
+                        //关闭模态框
+                        layer.close(saveFormDialogIndex);
+                        //重新加载数据：除了page和limit之外么有任何其他参数
+                        table.reloadData('ID-table-demo-search', {
+                            where: {}
+                        });
+                    } else {
+                        layer.alert(res.message, {icon: 5});
+                    }
+                }
+            })
+        })
+        // 日期
+        laydate.render({
+            elem: '#demo-table-search-date'
+        });
+        // 搜索提交
+        form.on('submit(demo-table-search)', function (data) {
+            var field = data.field; // 获得表单字段
+            console.debug(field);
+            // 执行搜索重载
+            table.reload('ID-table-demo-search', {
+                page: {
+                    curr: 1 // 重新从第 1 页开始
+                },
+                where: field // 搜索的字段
+            });
+            layer.msg('搜索成功<br>此处为静态模拟数据，实际使用时换成真实接口即可');
+            return false; // 阻止默认 form 跳转
+        });
+    });
+
+    function toEdit(index) {
+        param = pageData[index - 1];  //id为空表示新增  不为空表示修改
+        console.log(param)
+        //回显数据
+        saveFormDialogIndex = layer.open({
+            offset: '0px',              //坐标始终垂直水平居中
+            area: ['900px', 'auto'],    //宽度固定，高度自动
+            title: '新增/修改产品信息',
+            skin: 'layui-layer-molv',   //墨绿主题
+            type: 1,
+            //shadeClose: true, // 点击遮罩关闭层
+            //shade: false,               // 不显示遮罩
+            content: $('#addProject'), // 捕获的元素
+            success: function (layero, index, that) {
+                $("#save-proname").val(param.proname);
+                $("#save-proexplain").val(param.proexplain);
+                $("#save-proprice").val(param.proprice);
+                $("#save-prostep").val(param.prostep);
+                $("#save-protypeid").val(param.protypeid);
+                $("#save-busid").val(param.busid);
+                layui.form.render('select');
+
+                //回显图片
+                $('#ID-upload-demo-img').attr('src', ctxImg + param.image.imageurl);
+                element.progress('filter-demo', '100%');
+                param.imgIsChanged = imgIsChanged;
+            }
+        });
+    }
+</script>
+</body>
+</html>

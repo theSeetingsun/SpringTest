@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="App.dao.ProjectMapper">
+
+    <!--
+    mybatis要求：
+    1）mapper的xml文件的nameSpace与mapper接口的完全限定名一致；
+    2）mapper的xml中所有insert、update、Delete、select标签id必须与mapper接口中的方法一致
+    3）resultType写完全限定名，必须与返回的list集合的泛型类型一致
+
+    -->
+    <select id="getProinfos" resultMap="ProjectResultMap">
+        select p.*,
+               pt.name projecttypename,
+               i.imageurl,
+               i.imagetitle,
+               i.imagetype,
+               i.imagestate
+        from project p
+                 left join projecttype pt on p.protypeid = pt.id
+                 left join image i on p.imageid = i.id
+    </select>
+
+    <!--
+    resultMap标签将查询结果通过一个中转站封装成实体类对象
+    一般用于实体类属性名称与查询结果的列名称不一致的时候，或者需要关联查询的时候。
+    当查询结果有多行数据的时候，它会自动去循环处理。
+    -->
+    <resultMap id="ProjectResultMap" type="App.domain.Project">
+        <id column="id" property="id"/>
+        <result column="proexplain" property="proexplain"/>
+        <result column="proprice" property="proprice"/>
+        <result column="prostep" property="prostep"/>
+        <result column="protypeid" property="protypeid"/>
+        <result column="proname" property="proname"/>
+        <result column="imageid" property="imageid"/>
+        <result column="prostatus" property="prostatus"/>
+        <result column="busid" property="busid"/>
+        <result column="tecid" property="tecid"/>
+        <association property="image" javaType="App.domain.Image">
+            <id column="imageid" property="id"/>
+            <result column="imageurl" property="imageurl"/>
+            <result column="imagetitle" property="imagetitle"/>
+            <result column="imagetype" property="imagetype"/>
+            <result column="imagestate" property="imagestate"/>
+        </association>
+        <association property="projectType" javaType="App.domain.ProjectType">
+            <id column="protypeid" property="id"/>
+            <result column="projecttypename" property="name"/>
+
+        </association>
+    </resultMap>
+    <!--
+       分页查询数量
+   -->
+    <select id="getProinfosCount" resultType="java.lang.Long">
+        select count(*)
+        from project p
+        left join projecttype pt on p.protypeid = pt.id
+        left join image i on p.imageid = i.id
+        <include refid="whereCaluse"></include>
+    </select>
+    <select id="getProinfosPage" resultMap="ProjectResultMap">
+        select p.*,
+        pt.name projecttypename,
+        i.imageurl,
+        i.imagetitle,
+        i.imagetype,
+        i.imagestate
+        from project p
+        left join projecttype pt on p.protypeid = pt.id
+        left join image i on p.imageid = i.id
+        <include refid="whereCaluse"></include>
+        limit #{startIndex}, #{limit}
+    </select>
+    <select id="listByIsOwn" resultType="App.domain.Project">
+        select
+        p.id, p.proname
+        <if test="tecid != null">
+            ,(select 1 from tecpro where tecid = #{tecid} and proid = p.id) isOwn
+        </if>
+        from project p
+    </select>
+    <sql id="whereCaluse">
+        <where>
+            <if test="propriceMin != null">
+                and proprice &gt;= #{propriceMin}
+            </if>
+            <if test="propriceMax != null">
+                and proprice &lt;= #{propriceMax}
+            </if>
+            <if test="protypeid != null">
+                and protypeid = #{protypeid}
+            </if>
+            <if test="proname != null and proname != ''">
+                and proname like concat('%',#{proname},'%')
+            </if>
+            <if test="prostatus != null">
+                and prostatus = #{prostatus}
+            </if>
+            <if test="busid != null">
+                and busid = #{busid}
+            </if>
+        </where>
+    </sql>
+</mapper>

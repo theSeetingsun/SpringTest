@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width,initial-scale=1.33,minimum-scale=1.0,maximum-scale=1.0">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="Content-Language" content="zh-CN">
+    <link rel="stylesheet" href="../static/layui/css/layui.css" />
+
+    <script src="../static/layui/layui.js"></script>
+    <script src="../static/js/common.js"></script>
+
+    <style>
+        .tx-login-bg {
+            background: url(../static/layui/img/bg.jpg) no-repeat;
+            background-size:100% 100%;
+            background-attachment:fixed;
+        }
+        .tx-login-box{
+            width: 30%;
+            margin: auto;
+            margin-top: 200px;
+            box-shadow: 5px 5px 30px #928888;
+            padding: 20px;
+        }
+        li{
+            margin-bottom: 20px;
+        }
+    </style>
+
+</head>
+<body class="tx-login-bg">
+<div class="tx-login-box">
+    <div class="login-avatar bg-black">
+        <b>用户登录</b>
+        <br/><br/>
+    </div>
+    <ul class="tx-form-li row">
+        <li class="col-24 col-m-24">
+            <p>
+            <div class="layui-input-wrap">
+                <div class="layui-input-prefix layui-input-split">
+                    <i class="layui-icon layui-icon-username"></i>
+                </div>
+                <input type="text" id="username" placeholder="用户名" class="layui-input">
+            </div>
+            </p>
+        </li>
+        <li class="col-24 col-m-24">
+            <p>
+            <div class="layui-input-wrap">
+                <div class="layui-input-prefix layui-input-split">
+                    <i class="layui-icon layui-icon-password"></i>
+                </div>
+                <input type="password" id="password" name="password" placeholder="密码" class="layui-input">
+            </div>
+            </p>
+        </li>
+        <li class="col-24 col-m-24">
+            <p class="tx-input-full" style="text-align: center;">
+                <button type="button" id="btn-login"  class="layui-btn layuiadmin-btn-admin" lay-submit lay-filter="user-login">登录</button>
+            </p>
+        </li>
+    </ul>
+</div>
+<script type="text/javascript">
+    layui.use(['jquery','layer'], function() {
+        let $ = layui.jquery;
+        let layer = layui.layer;
+        $(document).keydown(function (event){
+            console.log(event.keyCode);
+            //13为回车键
+            if(event.keyCode == 13){
+                // 	调用登录方法
+                document.getElementById("btn-login").click();
+            }
+        });
+        $("#btn-login").click(function() {
+            var param = {
+                username: $("#username").val(),
+                password: $("#password").val()
+            };
+            $.ajax({
+                url: ctx + "/login",
+                data: JSON.stringify(param),
+                headers:{
+                    //发送参数的格式
+                    "content-type" : "application/json"
+                },
+                type: 'post',
+                dataType: 'json',//响应数据的格式
+                success: function(resp) {
+                    console.log(resp);
+                    if(resp.success) {
+                        layer.alert(resp.message,{icon:1});
+                        //登录成功：拿到用户信息和jwttoken，存储到localStorage中，然后跳转到首页
+                        localStorage.setItem("usertoken",resp.data.usertoken);
+                        localStorage.setItem("loginuser",JSON.stringify(resp.data.loginuser));
+
+                        //跳转到首页
+                        location.href = ctx + '/index';
+                    } else {
+                        layer.alert(resp.message,{icon:5});
+                    }
+                }
+            })
+        })
+
+    });
+</script>
+</body>
+</html>

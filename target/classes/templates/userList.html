@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Demo</title>
+    <link rel="stylesheet" href="../static/layui/css/layui.css">
+    <script src="../static/layui/layui.js"></script>
+    <script src="../static/js/common.js"></script>
+</head>
+<body>
+<form class="layui-form layui-row layui-col-space16" id="searchForm">
+    <div class="layui-col-md3">
+        <div class="layui-input-wrap">
+            <div class="layui-input-prefix">
+                <i class="layui-icon layui-icon-username"></i>
+            </div>
+            <input type="text" name="A" id="search-username"  placeholder="用户名模糊查询" class="layui-input" lay-affix="clear">
+        </div>
+    </div>
+    <div class="layui-col-md3">
+        <div class="layui-input-wrap">
+            <div class="layui-input-prefix">
+                <i class="layui-icon layui-icon-username"></i>
+            </div>
+            <input type="text" name="B" id="search-nickname" placeholder="昵称模糊查询" lay-affix="clear" class="layui-input">
+        </div>
+    </div>
+    <div class="layui-col-md3">
+        <div class="layui-input-wrap">
+            <div class="layui-input-prefix">
+                <i class="layui-icon layui-icon-cellphone-fine"></i>
+            </div>
+            <input type="text" name="C" id="search-phone" placeholder="手机号" class="layui-input">
+        </div>
+    </div>
+
+    <div class="layui-btn-container layui-col-md3 layui-col-md-offset9">
+        <button type="button" class="layui-btn" id="btn-search"><i class="layui-icon layui-icon-search"></i>搜索</button>
+        <button type="button" class="layui-btn layui-btn-primary" id="btn-reset"><i class="layui-icon layui-icon-fonts-clear"></i>重置</button>
+    </div>
+</form>
+<table class="layui-hide" id="ID-table-demo-search"></table>
+
+
+<script>
+    layui.use(['jquery', 'layer'], function () {
+        var table = layui.table;
+        var form = layui.form;
+        var laydate = layui.laydate;
+        var $ = layui.$;
+        table.render({
+            elem: '#ID-table-demo-search',
+            url: ctx + '/user/userListPage',
+            method: 'post',
+            //请求参数传递方式，以json格式传输，后端才能使用@RequestBody来接收
+            contentType: 'application/json;charset=utf-8',
+            // request: {
+            //     pageName: 'pageNo',     // 当前页码的参数名称，默认：page
+            //     limitName: 'pageSize'   // 每页数据条数的参数名，默认：limit
+            // },
+            page: {  //如果不想设置以下属性，则直接设置为true即可
+                limit: 3,           //分页工具栏中的每页条数  与后端UserQuery实体类中的limit对应
+                limits: [3, 10, 20]    //可改变每页条数
+            },
+            cols: [
+                [
+                    {checkbox: true, fixed: true},
+                    {field: 'id', title: 'ID', width: 80, sort: true, fixed: true},
+                    {field: 'nickname', title: '昵称', width: 180},
+                    {field: 'username', title: '用户名', width: 80},
+                    {field: 'phone', title: '手机号', width: 120, sort: true}
+                ]
+            ],
+            //layui发送请求到后端访问接口得到数据后，在展示表格之前先执行这个方法
+            parseData: function (res) { // res 即为原始返回的数据
+                console.log(res)
+                if (res.success) {
+                    return {
+                        "code": 0,                  // 解析接口状态  必须是0，非0的话就展示不出来数据
+                        "msg": res.message,         // 解析提示文本
+                        "count": res.data.total,    // 解析总条数
+                        "data": res.data.list       // 解析数据列表
+                    };
+                } else if (res.message === "noLogin") {
+                    layer.alert("请先登录！", {icon: 5}, function () {
+                        top.location.href = ctx + '/login';    //跳到登录页面
+                    });
+                } else {
+                    layer.alert(res.message, {icon: 5});
+                }
+            }
+        });
+        $("#btn-search").click(function (){
+            //重新加载数据：除了page和limit之外还携带了其他参数
+            table.reload('ID-table-demo-search',{
+                where:{
+                    username: $("#search-username").val(),
+                    nickname: $("#search-nickname").val(),
+                    phone: $("#search-phone").val()
+                }
+            });
+        })
+        //重置按钮绑定点击事件：重置搜索表单，还要将下面表格数据还原
+        $("#btn-reset").click(function (){
+            $("#searchForm")[0].reset();
+            //重新加载数据：除了page和limit之外么有任何其他参数
+            table.reloadData('ID-table-demo-search',{
+                where:{}
+            });
+        })
+
+        // 创建表格实例
+        /*table.render({
+            elem: '#ID-table-demo-search',
+            url: ctx + '/user/usrListPage',
+            //url: '/static/2.8/json/table/user.json', // 此处为静态模拟数据，实际使用时需换成真实接口
+            cols: [
+                [
+                    {checkbox: true, fixed: true},
+                    {field: 'id', title: 'ID', width: 80, sort: true, fixed: true},
+                    {field: 'username', title: '用户名', width: 80},
+                    {field: 'sex', title: '性别', width: 80, sort: true},
+                    {field: 'city', title: '城市', width: 80},
+                    {field: 'sign', title: '签名'},
+                    {field: 'experience', title: '积分', sort: true, width: 80}
+                ]
+            ],
+            data: [{
+                id: 99,
+                username: 'admin',
+                sex: 1,
+                city: '重庆市',
+                sign: '12345上山打老虎',
+                experience: 128
+            }],
+            page: true,
+            height: 310
+        });*/
+        // 日期
+        laydate.render({
+            elem: '#demo-table-search-date'
+        });
+        // 搜索提交
+        form.on('submit(demo-table-search)', function (data) {
+            var field = data.field; // 获得表单字段
+            console.debug(field);
+            // 执行搜索重载
+            table.reload('ID-table-demo-search', {
+                page: {
+                    curr: 1 // 重新从第 1 页开始
+                },
+                where: field // 搜索的字段
+            });
+            layer.msg('搜索成功<br>此处为静态模拟数据，实际使用时换成真实接口即可');
+            return false; // 阻止默认 form 跳转
+        });
+
+    });
+</script>
+</body>
+</html>
